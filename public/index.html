@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Employee Data Generator</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="container">
+        <h1>Employee Data Generator</h1>
+
+        <p class="description">
+            Generate 10 random employee records
+            and save them to MongoDB.
+        </p>
+
+        <button id="generateBtn">
+            Generate Data
+        </button>
+
+        <p id="message" aria-live="polite"></p>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Salary</th>
+                        <th>Language</th>
+                        <th>City</th>
+                        <th>Manager</th>
+                    </tr>
+                </thead>
+
+                <tbody id="employeeTable">
+                    <tr>
+                        <td colspan="5">
+                            Click Generate Data to load employees.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const generateBtn = document.getElementById("generateBtn");
+        const message = document.getElementById("message");
+        const employeeTable = document.getElementById("employeeTable");
+
+        generateBtn.addEventListener("click", async () => {
+            generateBtn.disabled = true;
+            generateBtn.textContent = "Generating...";
+            message.textContent = "Please wait...";
+            message.className = "";
+
+            try {
+                const response = await fetch("/generate-data", {
+                    method: "POST"
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.message || "Something went wrong");
+                }
+
+                message.textContent = data.message;
+                message.className = "success";
+
+                employeeTable.innerHTML = "";
+
+                data.employees.forEach((employee) => {
+                    const row = document.createElement("tr");
+
+                    const values = [
+                        employee.name,
+                        employee.salary.toLocaleString(),
+                        employee.language,
+                        employee.city,
+                        employee.isManager ? "Yes" : "No"
+                    ];
+
+                    values.forEach((value) => {
+                        const cell = document.createElement("td");
+                        cell.textContent = value;
+                        row.appendChild(cell);
+                    });
+
+                    employeeTable.appendChild(row);
+                });
+
+            } catch (error) {
+                message.textContent = error.message;
+                message.className = "error";
+
+            } finally {
+                generateBtn.disabled = false;
+                generateBtn.textContent = "Generate Data";
+            }
+        });
+    </script>
+
+</body>
+</html>
+
